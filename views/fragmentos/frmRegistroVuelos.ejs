@@ -1,0 +1,181 @@
+<script src="../assets/assets/js/validator.js"></script>
+<script>
+
+    $().ready(function () {
+
+        // validate signup form on keyup and submit
+        $("#formulario").validate({
+            rules: {
+                clientes: {
+                    required: true
+                },
+                fecha: {
+                    required: true,
+                    date: true
+                },
+                subtotal: {
+                    required: true,
+                    number: true
+                },
+                iva: {
+                    required: true,
+                    number: true
+                },
+                total: {
+                    required: true,
+                    number: true
+                }
+            },
+            messages: {
+                clientes: {
+                    required: "Ingrese la cedula"
+                }
+            }
+        });
+//
+        function calcularIva() {
+            var subtotal = $("#subtotal").val();
+            var ivas = $("#descuento").val();
+            //El iva esta definido ya
+            var iva = (subtotal * 1 * ivas)/100;
+            $("#iva").val(iva);
+        }
+//
+        function calcularTotal() {
+            calcularIva();
+            var subtotal = $("#subtotal").val();
+            var iva = $("#iva").val();
+            var total = ((subtotal * 1) + (iva * 1));
+            $("#total").val(total);
+        }
+//
+        $("#subtotal").keyup(function () {
+            calcularTotal();
+        });
+
+        $("#descuento").change(function () {
+            calcularTotal();
+        });
+
+    });
+</script>
+<header class="major">
+    <h2><%= title %></h2>    
+</header>
+<section id="content">
+    <% if (locals.flash) { %>
+    <div class="alert alert-danger">
+        <%- locals.flash %>
+    </div>
+    <% } %>  
+    <form method="POST" action="/registro/vuelo/guardar" id="formulario">
+        <div class="row gtr-uniform gtr-50">
+            <!--            Almacena el externalId para las modificaciones-->
+            <input type="hidden" value="0" id="external" name="external"/>    
+            <div class="col-12">
+                <select name="clientes" id="clientes">
+                    <!--                    Recorrer la lista de facturas para presentarlas en las pantallas de usuario-->
+                    <% lista.forEach(function(persona, i) { %>
+                    <!--                    persona.id por que es por medio de el que se relacionan y se identifican los datos-->
+                    <option value="<%= persona.id %>"><%= persona.nombres %> <%= persona.apellidos %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <div class="col-6 col-12-xsmall">
+                <!--                se añede un estilo extra para efectos de presentacion-->
+                <input type="date" name="fecha" id="fecha" placeholder="Fecha" style="color: red"/>
+            </div>
+
+            <div class="form-group row">
+                <h5>DESTINO</h5>
+                <select id="destino" class="col-sm-10 " name="pais"></select>
+            </div>
+
+
+            <div class="col-6 col-12-xsmall">
+                <input type="text" name="subtotal" id="subtotal" placeholder="Precio Fijo" />
+            </div>
+
+            <div class="col-6 col-12-xsmall">
+                <h5>IVA</h5>
+                <input type="text" name="iva" id="iva"  placeholder="IVA" readonly/>
+            </div>
+
+            <div class="col-12">
+                <select name="descuento" id="descuento">
+                    <option value="0">0%</option>
+                    <option value="10">10%</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-12-xsmall">
+                <input type="text" name="total" id="total"  placeholder="Precio Total" readonly/>
+            </div>
+
+            <div class="col-12">
+                <ul class="actions navbar-nav">
+                    <li><input type="submit" value="GUARDAR" class="primary" /></li>
+                    <li><a href="/registro/vuelo" class="btn btn-danger">CANCELAR</a></li>
+                </ul>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <!--        La tabla debe construirse automaticamente-->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nro</th><th>Cliente</th><th>Pais</th><th>Total</th><th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% listaF.forEach(function(vuelo, i) { %>
+
+                <tr>
+                    <!--                    contador-->
+                    <td><%= (i+1) %></td>
+                    <td>
+                        <%= vuelo[i].datosPersona %>
+                    </td>
+                    <td><%= vuelo[i].pais %></td>
+                    <td><%= vuelo[i].total %></td>
+                    <td><a href="#" id="<%= i %>">Modificar</a></td>
+                    <!--MODIFICAR-->
+            <script type="text/javascript">
+                $("#<%= i %>").click(function () {
+                    $("#external").val("<%= vuelo[i].externalId %>");
+                    $("#clientes").val("<%= vuelo[i].persona %>");
+                    $("#nro").val("<%= vuelo[i].pais %>");
+                    $("#fecha").val("<%= vuelo[i].fecha %>");
+                    $("#subtotal").val("<%= vuelo[i].subtotal %>");
+                    $("#descuento").val("<%= vuelo[i].descuento %>");
+                    $("#total").val("<%= vuelo[i].total %>");
+                    $("#iva").val("<%= vuelo[i].iva %>");
+                });
+            </script>
+            </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script >
+var url = 'http://services.groupkt.com/state/get/USA/all/';
+        var html;
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data, textStatus, jqXHR) {
+                $.each(data.RestResponse.result, function (i, item) {
+                    html += '<option value="' + item.name + '">' + item.name + '</option>'
+                });
+                $('#destino').html(html);
+            }, error: function (jqXHR, textStatus, errorThrown) {
+
+            }
+        });
+</script>
+
